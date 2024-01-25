@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from graphviz import Digraph
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+import numpy as np
 class TreeModel:
     def __init__(self, model_type, model_params, X_train, y_train, class_names, output_dir='tree_visualizations'):
         """
@@ -31,6 +31,8 @@ class TreeModel:
 
         # Initialize the model
         self.model = self._create_model()
+        self.leaves = self.compute_leaves_errors()
+        print("leaves\n", self.leaves)
 
     def _create_model(self):
         """
@@ -72,6 +74,29 @@ class TreeModel:
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
 
+    def compute_leaves_errors(self):
+        clf = self.model if isinstance(self.model, DecisionTreeClassifier) else self.model.estimators_[0]
+        tree = clf.tree_
+        leaf_errors = {}
+        TREE_LEAF = -1
+        for xi, yi in zip(np.array(self.X_train), np.array(self.y_train)):
+            node = 0
+            while tree.children_left[node] != TREE_LEAF:
+
+                if float(xi[tree.feature[node]]) <= float(tree.threshold[node]):
+                    node = tree.children_left[node]
+                else:
+                    node = tree.children_right[node]
+            if node not in leaf_errors:
+                leaf_errors[node] = {'errors': 0, 'total': 0}
+            leaf_errors[node]['total'] += 1
+            prediction = np.argmax(tree.value[node])
+            #print("compare")
+            #print(yi,self.class_names[prediction] )
+            #if self.class_names[prediction] != yi:
+            if prediction != yi:
+                leaf_errors[node]['errors'] += 1
+        return leaf_errors
     def custom_plot_tree(self, filename='clean_tree'):
         """
         Plot the trained tree model with custom formatting.
@@ -192,11 +217,3 @@ if __name__ == "__main__" :
     )
     dest = os.path.join("..","graphical_output","my_tree_visualization")
     output_path = tree_model.custom_plot_tree(filename=dest)
-    """
-
-    dot = Digraph()
-    dot.node('A', 'Node A')
-    dot.node('B', 'Node B')
-    dot.edges(['AB'])
-    dot.render('test-output/graph-test', view=True)
-    """
