@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 class TreeModel:
-    def __init__(self, model_type, model_params, X_train, y_train, class_names, output_dir='tree_visualizations'):
+    def __init__(self, model_type, model_params, X_train, y_train, class_names, output_dir='graphical_output'):
         """
         Initialize the TreeModel.
 
@@ -32,6 +32,7 @@ class TreeModel:
         # Initialize the model
         self.model = self._create_model()
         self.leaves = self.compute_leaves_errors()
+        self.total_num_of_samples = X_train.shape[0]
         print("leaves\n", self.leaves)
 
     def _create_model(self):
@@ -133,7 +134,12 @@ class TreeModel:
 
             # Build full file path
             file_path = os.path.join(self.output_dir, filename)
+            print(self.output_dir)
+            print(os.path.isdir(self.output_dir))
+            print("file_path: %s" % file_path)
             graph.render(file_path, cleanup=True)
+
+
             return f'{file_path}.png'
         else:
             raise ValueError(f"Custom plot not supported for model type: {self.model_type}")
@@ -180,7 +186,13 @@ class TreeModel:
                     line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
                     line = re.sub(r'label=<[0-9]+','label=<',line)
                     line = re.sub(r'<br/><br/>', '', line)
-
+                    lbl = f"\nError Rate: {self.leaves[int(node_id)]['errors'] / self.leaves[int(node_id)]['total']:.2f}"
+                    lbl2 = f"\n % of the total:{100* self.leaves[int(node_id)]['total']/self.total_num_of_samples:.2f}%"
+                    print(line.find("label=<No>"))
+                    line = line.replace("label=<No>","label=<No"+"<br/>"+lbl + "<br/>"+lbl2+">")
+                    line = line.replace("label=<Yes>", "label=<Yes" + "<br/>" + lbl + "<br/>" +lbl2  +">")
+                    #line = line.replace("label=<No>", "label=<No>"  )
+                    #line = line.replace("label=<Yes>", "label=<Yes <br/> %s>"%lbl  )
                     print("leaf_AFTER\n%s"%line)
 
 
@@ -215,5 +227,5 @@ if __name__ == "__main__" :
         y_train=y_train,
         class_names= class_names
     )
-    dest = os.path.join("..","graphical_output","my_tree_visualization")
-    output_path = tree_model.custom_plot_tree(filename=dest)
+    #dest = os.path.join("..","graphical_output","my_tree_visualization")
+    output_path = tree_model.custom_plot_tree(filename="test2")

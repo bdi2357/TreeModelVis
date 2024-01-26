@@ -16,14 +16,19 @@ class TestTreeModel(unittest.TestCase):
     def test_random_forest_model(self):
         tree_model = TreeModel(
             model_type='random_forest',
-            model_params={'max_depth': 4},
+            model_params={'max_depth': 3},
             X_train=self.X_train,
             y_train=self.y_train,
             class_names=self.class_names
         )
-        dest = os.path.join("..", "graphical_output", "my_tree_visualization")
-        output_path = tree_model.custom_plot_tree(filename=dest)
+        """
+        dest = os.path.join("graphical_output")
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        """
+        output_path = tree_model.custom_plot_tree(filename="test1")
         # Assertions to verify the test results
+        print(output_path)
 
 if __name__ == '__main__':
     unittest.main()
