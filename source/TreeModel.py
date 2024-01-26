@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 class TreeModel:
-    def __init__(self, model_type, model_params, X_train, y_train, class_names, output_dir='graphical_output'):
+    def __init__(self, model_type, model_params, X_train, y_train, class_names, output_dir=os.path.join('..','graphical_output')):
         """
         Initialize the TreeModel.
 
