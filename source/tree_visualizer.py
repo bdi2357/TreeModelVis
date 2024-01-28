@@ -4,8 +4,9 @@ import re
 import numpy as np
 
 
-def draw_path(tree_model, data_point, model_type):
+def draw_path(tree_model, data_point, model_type, features):
     # Access the classifier and feature/class names from TreeModel
+    UNDEF = -2
     clf = tree_model.model
     # features = tree_model.feature_names
     class_names = tree_model.class_names
@@ -26,7 +27,7 @@ def draw_path(tree_model, data_point, model_type):
         out_file=None,
         filled=True,
         rounded=True,
-        # feature_names=features,
+        feature_names=features,
         class_names=class_names,
         special_characters=True
     )
@@ -34,17 +35,33 @@ def draw_path(tree_model, data_point, model_type):
     new_dot_lines = []
     for line in dot_data.split("\n"):
         # Clean-up label attributes
-        line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
-        line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
-        line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
-
-        # Highlight the decision path
         if "->" not in line and "[label=" in line:
             node_id = line.split(" ")[0]
-            if int(node_id) in np.where(decision_path == 1)[0]:
-                line = line.replace("fillcolor=\"#", "fillcolor=green, original_fillcolor=\"#")
+            print("before\n%s" % line)
+            line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
+            line = line.replace("<br/><br/><br/>", '<br/>')
+            line = line.replace("<br/><br/>", '<br/>')
+            line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
+
+            # line = line.replace("label=<<br/>class =","label=<class =")
+            if not (tree_clf.tree_.children_left[int(node_id)] + tree_clf.tree_.children_right[
+                int(node_id)] == UNDEF):
+                line = line.replace("<br/>class = Yes", "")
+                line = line.replace("<br/>class = No", "")
             else:
-                line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
+                line = line.replace("<br/>class = Yes", "class = Yes")
+                line = line.replace("<br/>class = No", "class = No")
+            print("after\n%s" % line)
+
+            # Highlight the decision path
+            if "->" not in line and "[label=" in line:
+                node_id = line.split(" ")[0]
+                if int(node_id) in np.where(decision_path == 1)[0]:
+                    line = line.replace("fillcolor=\"#", "fillcolor=green, original_fillcolor=\"#")
+                else:
+                    line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
         new_dot_lines.append(line)
 
     # Reassemble the cleaned-up dot data

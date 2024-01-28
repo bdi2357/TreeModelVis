@@ -11,6 +11,7 @@ file_path = os.path.join("..", "data", "diabetes.csv")
 df = pd.read_csv(file_path)
 target_column = 'Outcome'
 X = df.drop(target_column, axis=1)
+features = list(X.columns)
 y = df[target_column]
 
 # Split the dataset into training and test sets
@@ -30,7 +31,7 @@ tree_model = TreeModel(
 data_point = X_test.iloc[0]
 
 # Call draw_path with the trained model and the data point
-graph = draw_path(tree_model, data_point, model_type='random_forest')
+graph = draw_path(tree_model, data_point, model_type='random_forest', features=features)
 
 # Render and view the graph
 graph.render(os.path.join('..', 'graphical_output', 'test_tree_visualization'), view=True,
