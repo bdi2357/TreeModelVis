@@ -24,7 +24,7 @@ class TreeModel:
         self.X_train = X_train
         self.y_train = y_train
         self.output_dir = output_dir
-        self.class_names =  class_names
+        self.class_names = class_names
         # Ensure the output directory exists
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -48,7 +48,7 @@ class TreeModel:
         elif self.model_type == 'random_forest':
             from sklearn.ensemble import RandomForestClassifier
             clf =  RandomForestClassifier(n_estimators=1, **self.model_params)
-            clf.fit(self.X_train, self.y_train)
+            clf.fit(np.array(self.X_train), np.array(self.y_train))
             return clf
 
         elif self.model_type == 'gradient_boosting':
@@ -169,8 +169,9 @@ class TreeModel:
                 if not (clf.tree_.children_left[int(node_id)] + clf.tree_.children_right[
                     int(node_id)] == UNDEF ):
                     print(line)
-                    line = line.replace("<br/>Yes", "")
-                    line = line.replace("<br/>No", "")
+                    for class_name in self.class_names:
+                        line = line.replace("<br/>%s" % str(class_name), "")
+                    # line = line.replace("<br/>No", "")
                     line = re.sub(r'samples = .*?\[?[0-9, ]+\]?', '', line)
                     line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
                     line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
@@ -180,20 +181,21 @@ class TreeModel:
 
                     print("after")
                     print(line)
-                    print("#" *44)
+                    print("#" * 44)
                 else:
-                    print("leaf\n%s"%line)
+                    print("leaf\n%s" % line)
                     line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
-                    line = re.sub(r'label=<[0-9]+','label=<',line)
+                    line = re.sub(r'label=<[0-9]+', 'label=<', line)
                     line = re.sub(r'<br/><br/>', '', line)
                     lbl = f"\nError Rate: {self.leaves[int(node_id)]['errors'] / self.leaves[int(node_id)]['total']:.2f}"
-                    lbl2 = f"\n % of the total:{100* self.leaves[int(node_id)]['total']/self.total_num_of_samples:.2f}%"
-                    print(line.find("label=<No>"))
-                    line = line.replace("label=<No>","label=<No"+"<br/>"+lbl + "<br/>"+lbl2+">")
-                    line = line.replace("label=<Yes>", "label=<Yes" + "<br/>" + lbl + "<br/>" +lbl2  +">")
-                    #line = line.replace("label=<No>", "label=<No>"  )
-                    #line = line.replace("label=<Yes>", "label=<Yes <br/> %s>"%lbl  )
-                    print("leaf_AFTER\n%s"%line)
+                    lbl2 = f"\n % of the total:{100 * self.leaves[int(node_id)]['total'] / self.total_num_of_samples:.2f}%"
+                    # print(line.find("label=<No>"))
+                    for class_name in self.class_names:
+                        line = line.replace("label=<%s>" % class_name,
+                                            "label=<%s" % class_name + "<br/>" + lbl + "<br/>" + lbl2 + ">")
+                    # line = line.replace("label=<Yes>", "label=<Yes" + "<br/>" + lbl + "<br/>" +lbl2  +">")
+
+                    print("leaf_AFTER\n%s" % line)
 
 
 

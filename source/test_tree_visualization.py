@@ -32,7 +32,7 @@ data_point = X_test.iloc[0]
 
 # Call draw_path with the trained model and the data point
 graph = draw_path(tree_model, data_point, model_type='random_forest', features=features)
-
+# graph.render(os.path.join('..', 'graphical_output', 'test_tree_visualization'), view=True, format='png', engine='dot', dpi=300)
 # Render and view the graph
 graph.render(os.path.join('..', 'graphical_output', 'test_tree_visualization'), view=True,
              format='png')  # Specify your output path

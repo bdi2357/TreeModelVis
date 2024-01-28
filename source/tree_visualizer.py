@@ -48,11 +48,18 @@ def draw_path(tree_model, data_point, model_type, features):
             # line = line.replace("label=<<br/>class =","label=<class =")
             if not (tree_clf.tree_.children_left[int(node_id)] + tree_clf.tree_.children_right[
                 int(node_id)] == UNDEF):
-                line = line.replace("<br/>class = Yes", "")
-                line = line.replace("<br/>class = No", "")
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name, "")
+
             else:
-                line = line.replace("<br/>class = Yes", "class = Yes")
-                line = line.replace("<br/>class = No", "class = No")
+                lbl = f"\nError Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
+                lbl2 = f"\n % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
+                # line = line.replace("label=<No>", "label=<No" + "<br/>" + lbl + "<br/>" + lbl2 + ">")
+                # line = line.replace("label=<Yes>", "label=<Yes" + "<br/>" + lbl + "<br/>" + lbl2 + ">")
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name,
+                                        "%s" % class_name + "<br/>" + lbl + "<br/>" + lbl2)
+                # line = line.replace("<br/>class = No", "class = No"+"<br/>" + lbl + "<br/>" + lbl2)
             print("after\n%s" % line)
 
             # Highlight the decision path
@@ -62,11 +69,30 @@ def draw_path(tree_model, data_point, model_type, features):
                     line = line.replace("fillcolor=\"#", "fillcolor=green, original_fillcolor=\"#")
                 else:
                     line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
+        if 'label=' in line:
+            # Increase font size
+            print("HEREX")
+            line = re.sub(r'fontsize=\d+', 'fontsize=20', line)
+        if '[shape=box]' in line or '->' not in line:
+            # Increase node size
+            line = line.replace('[shape=box]', '[shape=box, width=1.8, height=0.9]')
         new_dot_lines.append(line)
+        if 'graph [' in line:
+            # Insert settings right after the graph declaration
+            new_dot_lines.append('  node [fontsize=30, width=3, height=1.5];')
 
     # Reassemble the cleaned-up dot data
     clean_dot_data = "\n".join(new_dot_lines)
 
     # Create and return graph from dot data
-    graph = graphviz.Source(clean_dot_data)
+    # graph = graphviz.Source(clean_dot_data)
+    # graph = graphviz.Source(clean_dot_data, format='png')
+    # graph.attr(dpi='300')  # Higher DPI for better resolution
+    # graph.attr('node', fontsize='12')  # Increase node font size
+    # graph.attr('edge', fontsize='10')  # Increase edge font
+
+    # Create a graph from the modified dot data
+
+    graph = graphviz.Source(clean_dot_data, format='png')
+
     return graph
