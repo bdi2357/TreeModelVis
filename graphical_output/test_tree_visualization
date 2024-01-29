@@ -1,73 +1,79 @@
 digraph Tree {
 node [shape=box, style="filled, rounded", color="black", fontname="helvetica"] ;
 edge [fontname="helvetica"] ;
-0 [label=<DiabetesPedigreeFunction &le; 0.218<br/>>, fillcolor=green, original_fillcolor="#f5ceb1"] ;
-1 [label=<Age &le; 23.5>, fillcolor=white, original_fillcolor="#ea9c63"] ;
+0 [label=<Glucose &le; 157.5<br/>>, fillcolor=green, original_fillcolor="#f3c6a6"] ;
+1 [label=<Age &le; 31.5>, fillcolor=green, original_fillcolor="#efb083"] ;
 0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
-2 [label=<No<br/>
-Error Rate: 0.04<br/>
- % of the total:4.56%>, fillcolor=white, original_fillcolor="#e58139"] ;
+2 [label=<BMI &le; 30.95>, fillcolor=white, original_fillcolor="#ea995e"] ;
 1 -> 2 ;
-3 [label=<Pregnancies &le; 13.5>, fillcolor=white, original_fillcolor="#eda877"] ;
-1 -> 3 ;
-4 [label=<Pregnancies &le; 0.5>, fillcolor=white, original_fillcolor="#eca471"] ;
+3 [label=<Age &le; 28.5>, fillcolor=white, original_fillcolor="#e68743"] ;
+2 -> 3 ;
+4 [label=<No<br/>
+Error Rate: 0.05<br/>
+ % of the total:24.10%>, fillcolor=white, original_fillcolor="#e68540"] ;
 3 -> 4 ;
 5 [label=<No<br/>
-Error Rate: 0.33<br/>
- % of the total:1.47%>, fillcolor=white, original_fillcolor="#f8e0ce"] ;
-4 -> 5 ;
-6 [label=<No<br/>
-Error Rate: 0.25<br/>
- % of the total:13.03%>, fillcolor=white, original_fillcolor="#eb9c63"] ;
-4 -> 6 ;
+Error Rate: 0.22<br/>
+ % of the total:3.75%>, fillcolor=white, original_fillcolor="#e99355"] ;
+3 -> 5 ;
+6 [label=<BloodPressure &le; 53.0<br/>>, fillcolor=white, original_fillcolor="#f0b489"] ;
+2 -> 6 ;
 7 [label=<Yes<br/>
-Error Rate: 0.00<br/>
- % of the total:0.33%>, fillcolor=white, original_fillcolor="#399de5"] ;
-3 -> 7 ;
-8 [label=<Age &le; 28.5>, fillcolor=green, original_fillcolor="#f8decb"] ;
-0 -> 8 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
-9 [label=<BMI &le; 30.95<br/>>, fillcolor=white, original_fillcolor="#eeab7b"] ;
-8 -> 9 ;
-10 [label=<SkinThickness &le; 5.0>, fillcolor=white, original_fillcolor="#e78c4a"] ;
+Error Rate: 0.33<br/>
+ % of the total:2.44%>, fillcolor=white, original_fillcolor="#5dafea"] ;
+6 -> 7 ;
+8 [label=<No<br/>
+Error Rate: 0.23<br/>
+ % of the total:22.96%>, fillcolor=white, original_fillcolor="#eda876"] ;
+6 -> 8 ;
+9 [label=<Glucose &le; 94.5>, fillcolor=green, original_fillcolor="#fae8db"] ;
+1 -> 9 ;
+10 [label=<Insulin &le; 21.0>, fillcolor=white, original_fillcolor="#e78c4a"] ;
 9 -> 10 ;
 11 [label=<No<br/>
-Error Rate: 0.15<br/>
- % of the total:3.26%>, fillcolor=white, original_fillcolor="#eeae80"] ;
+Error Rate: 0.16<br/>
+ % of the total:4.07%>, fillcolor=white, original_fillcolor="#ea985d"] ;
 10 -> 11 ;
 12 [label=<No<br/>
-Error Rate: 0.04<br/>
- % of the total:15.47%>, fillcolor=white, original_fillcolor="#e68742"] ;
+Error Rate: 0.00<br/>
+ % of the total:1.47%>, fillcolor=white, original_fillcolor="#e58139"] ;
 10 -> 12 ;
-13 [label=<BloodPressure &le; 51.0>, fillcolor=white, original_fillcolor="#f6d3ba"] ;
+13 [label=<Age &le; 53.5>, fillcolor=green, original_fillcolor="#ffffff"] ;
 9 -> 13 ;
 14 [label=<Yes<br/>
-Error Rate: 0.25<br/>
- % of the total:1.30%>, fillcolor=white, original_fillcolor="#5dafea"] ;
+Error Rate: 0.47<br/>
+ % of the total:23.45%>, fillcolor=green, original_fillcolor="#d7ebfa"] ;
 13 -> 14 ;
 15 [label=<No<br/>
-Error Rate: 0.32<br/>
- % of the total:19.06%>, fillcolor=white, original_fillcolor="#f3c3a1"] ;
+Error Rate: 0.30<br/>
+ % of the total:3.75%>, fillcolor=white, original_fillcolor="#eca26d"] ;
 13 -> 15 ;
-16 [label=<Glucose &le; 99.5>, fillcolor=green, original_fillcolor="#c3e1f7"] ;
-8 -> 16 ;
-17 [label=<BMI &le; 34.45>, fillcolor=green, original_fillcolor="#eb9f69"] ;
+16 [label=<Age &le; 66.5>, fillcolor=white, original_fillcolor="#54aae9"] ;
+0 -> 16 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+17 [label=<Insulin &le; 351.5>, fillcolor=white, original_fillcolor="#51a9e8"] ;
 16 -> 17 ;
-18 [label=<No<br/>
-Error Rate: 0.04<br/>
- % of the total:4.07%>, fillcolor=green, original_fillcolor="#e58139"] ;
+18 [label=<DiabetesPedigreeFunction &le; 1.428>, fillcolor=white, original_fillcolor="#4aa6e7"] ;
 17 -> 18 ;
 19 [label=<Yes<br/>
-Error Rate: 0.62<br/>
- % of the total:2.61%>, fillcolor=white, original_fillcolor="#e3f1fb"] ;
-17 -> 19 ;
-20 [label=<Insulin &le; 120.5>, fillcolor=white, original_fillcolor="#a2d1f3"] ;
-16 -> 20 ;
-21 [label=<Yes<br/>
-Error Rate: 0.46<br/>
- % of the total:22.15%>, fillcolor=white, original_fillcolor="#dbedfa"] ;
-20 -> 21 ;
-22 [label=<<br/>Yes<br/>
-Error Rate: 0.27<br/>
- % of the total:12.70%>, fillcolor=white, original_fillcolor="#62b1ea"] ;
-20 -> 22 ;
+Error Rate: 0.13<br/>
+ % of the total:11.56%>, fillcolor=white, original_fillcolor="#45a3e7"] ;
+18 -> 19 ;
+20 [label=<No<br/>
+Error Rate: 0.67<br/>
+ % of the total:0.49%>, fillcolor=white, original_fillcolor="#ffffff"] ;
+18 -> 20 ;
+21 [label=<BMI &le; 28.0>, fillcolor=white, original_fillcolor="#9ccef2"] ;
+17 -> 21 ;
+22 [label=<No<br/>
+Error Rate: 0.00<br/>
+ % of the total:0.16%>, fillcolor=white, original_fillcolor="#e58139"] ;
+21 -> 22 ;
+23 [label=<Yes<br/>
+Error Rate: 0.30<br/>
+ % of the total:1.63%>, fillcolor=white, original_fillcolor="#7bbeee"] ;
+21 -> 23 ;
+24 [label=<No<br/>
+Error Rate: 0.00<br/>
+ % of the total:0.16%>, fillcolor=white, original_fillcolor="#e58139"] ;
+16 -> 24 ;
 }

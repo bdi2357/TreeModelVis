@@ -96,3 +96,69 @@ def draw_path(tree_model, data_point, model_type, features):
     graph = graphviz.Source(clean_dot_data, format='png')
 
     return graph
+
+
+def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
+    # Generate DOT-format graph description
+    leaf_errors = compute_leaf_errors(clf, X, y)
+    dot_data = export_graphviz(clf, out_file=None, filled=True, rounded=True,
+                               feature_names=features, class_names=class_names,
+                               special_characters=True)
+
+    # Initialize a list to hold the new lines of the DOT string
+    decision_path = clf.decision_path(X).toarray()
+    new_dot_lines = []
+    m = np.where(decision_path[:, leaf])[0][0]
+    decision_path = decision_path[m, :]
+
+    # Iterate through each line of the original DOT string
+    for line in dot_data.split("\n"):
+        # Remove 'samples' and 'value' lines from the label attribute
+        line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
+        line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
+        line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
+
+        # If the line defines a node, set its fillcolor
+        if "->" not in line and "[label=" in line:
+            node_id = line.split(" ")[0]
+            # errors = leaf_errors.get(node, {'errors': 0, 'total': 0})
+            if not (clf.tree_.children_left[int(node_id)] == clf.tree_.children_right[
+                int(node_id)] == _tree.TREE_UNDEFINED):
+                line = line.replace("<br/><br/><br/><br/>class = Yes", "")
+                line = line.replace("<br/><br/><br/><br/>class = No", "")
+
+            if int(node_id) in np.where(decision_path == 1)[0]:
+                line = line.replace("fillcolor=\"#", "fillcolor=red, original_fillcolor=\"#")
+
+                if node_id == str(leaf):
+                    label = f"Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+                    # print("line")
+                    # print(line)
+                    # label=<<br/><br/><br/>class = Yes>
+                    line = line.replace("label=<<br/><br/>", "label=<<br/>%s<br/>" % label)
+                    # label += f"\nWorst Leaf: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+
+
+            else:
+                if int(node_id) == _tree.TREE_LEAF or (clf.tree_.children_left[int(node_id)] + clf.tree_.children_right[
+                    int(node_id)] == _tree.TREE_UNDEFINED):
+                    label = f"Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+
+                    line = line.replace("label=<<br/><br/>", "label=<<br/>%s<br/>" % label)
+                line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
+
+        new_dot_lines.append(line)
+
+    # Join the modified lines back into a single string
+    new_dot_data = "\n".join(new_dot_lines)
+
+    return new_dot_data
+
+
+def visualize_decision_tree_with_errorsN3(clf, X, y, feature_names, class_names):
+    tree = clf.tree_
+    leaf_classes = [np.argmax(value[0]) for value in tree.value]
+    leaf_errors = compute_leaf_errors(clf, X, y)
+    worst_leaf = max(leaf_errors, key=lambda x: (leaf_errors[x]['errors'] / leaf_errors[x]['total']) if leaf_errors[x][
+                                                                                                            'total'] > 0 else 0)
+    return leaf_to_path(clf, X, y, feature_names, class_names, worst_leaf)
