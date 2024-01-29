@@ -2,8 +2,14 @@ from sklearn.tree import export_graphviz
 import graphviz
 import re
 import numpy as np
+import os
+from TreeModel import TreeModel
+from sklearn.model_selection import train_test_split
+import pandas as pd
+from graphviz import Source
 
 
+# from IPython.display import display, Image
 def draw_path(tree_model, data_point, model_type, features):
     # Access the classifier and feature/class names from TreeModel
     UNDEF = -2
@@ -12,7 +18,7 @@ def draw_path(tree_model, data_point, model_type, features):
     class_names = tree_model.class_names
 
     # Handle different model types
-    if model_type == 'random_forest':
+    if model_type != 'decision_tree':
         tree_clf = clf.estimators_[0]  # Assuming use of the first tree in the forest
     else:
         tree_clf = clf  # For other model types, use the classifier directly
@@ -98,15 +104,22 @@ def draw_path(tree_model, data_point, model_type, features):
     return graph
 
 
-def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
+def leaf_to_path(tree_model, X, y, model_type, feature_names, class_names, leaf):
     # Generate DOT-format graph description
-    leaf_errors = compute_leaf_errors(clf, X, y)
-    dot_data = export_graphviz(clf, out_file=None, filled=True, rounded=True,
-                               feature_names=features, class_names=class_names,
+    # leaf_errors = compute_leaf_errors(clf, X, y)
+    UNDEF = -2
+    TREE_LEAF = -1
+    clf = tree_model.model
+    if model_type != 'decision_tree':
+        tree_clf = clf.estimators_[0]  # Assuming use of the first tree in the forest
+    else:
+        tree_clf = clf  # For other model types, use the classifier directly
+    dot_data = export_graphviz(tree_clf, out_file=None, filled=True, rounded=True,
+                               feature_names=feature_names, class_names=class_names,
                                special_characters=True)
 
     # Initialize a list to hold the new lines of the DOT string
-    decision_path = clf.decision_path(X).toarray()
+    decision_path = tree_clf.decision_path(X).toarray()
     new_dot_lines = []
     m = np.where(decision_path[:, leaf])[0][0]
     decision_path = decision_path[m, :]
@@ -114,6 +127,7 @@ def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
     # Iterate through each line of the original DOT string
     for line in dot_data.split("\n"):
         # Remove 'samples' and 'value' lines from the label attribute
+
         line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
         line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
         line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
@@ -122,8 +136,8 @@ def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
         if "->" not in line and "[label=" in line:
             node_id = line.split(" ")[0]
             # errors = leaf_errors.get(node, {'errors': 0, 'total': 0})
-            if not (clf.tree_.children_left[int(node_id)] == clf.tree_.children_right[
-                int(node_id)] == _tree.TREE_UNDEFINED):
+            if not (tree_clf.tree_.children_left[int(node_id)] == tree_clf.tree_.children_right[
+                int(node_id)] == UNDEF):
                 line = line.replace("<br/><br/><br/><br/>class = Yes", "")
                 line = line.replace("<br/><br/><br/><br/>class = No", "")
 
@@ -131,7 +145,15 @@ def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
                 line = line.replace("fillcolor=\"#", "fillcolor=red, original_fillcolor=\"#")
 
                 if node_id == str(leaf):
-                    label = f"Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+                    """
+                    lbl = f"\nError Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
+                    lbl2 = f"\n % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
+                    """
+                    """
+                    lbl = f"\nError Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
+                    lbl2 = f"\n % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
+                    """
+                    label = f"Error Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
                     # print("line")
                     # print(line)
                     # label=<<br/><br/><br/>class = Yes>
@@ -140,9 +162,10 @@ def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
 
 
             else:
-                if int(node_id) == _tree.TREE_LEAF or (clf.tree_.children_left[int(node_id)] + clf.tree_.children_right[
-                    int(node_id)] == _tree.TREE_UNDEFINED):
-                    label = f"Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+                if int(node_id) == TREE_LEAF or (
+                        tree_clf.tree_.children_left[int(node_id)] + tree_clf.tree_.children_right[
+                    int(node_id)] == UNDEF):
+                    label = f"Error Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
 
                     line = line.replace("label=<<br/><br/>", "label=<<br/>%s<br/>" % label)
                 line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
@@ -155,10 +178,53 @@ def leaf_to_path(clf, X, y, feature_names, class_names, leaf):
     return new_dot_data
 
 
-def visualize_decision_tree_with_errorsN3(clf, X, y, feature_names, class_names):
-    tree = clf.tree_
-    leaf_classes = [np.argmax(value[0]) for value in tree.value]
-    leaf_errors = compute_leaf_errors(clf, X, y)
-    worst_leaf = max(leaf_errors, key=lambda x: (leaf_errors[x]['errors'] / leaf_errors[x]['total']) if leaf_errors[x][
-                                                                                                            'total'] > 0 else 0)
-    return leaf_to_path(clf, X, y, feature_names, class_names, worst_leaf)
+def visualize_decision_tree_with_errors(tree_model, X, y, feature_names, model_type, class_names):
+    clf = tree_model.model
+    # features = tree_model.feature_names
+    class_names = tree_model.class_names
+
+    # Handle different model types
+    if model_type != 'decision_tree':
+        tree_clf = clf.estimators_[0]  # Assuming use of the first tree in the forest
+    else:
+        tree_clf = clf  # For other model types, use the classifier directly
+
+    worst_leaf = max(tree_model.leaves,
+                     key=lambda x: (tree_model.leaves[int(x)]['errors'] / tree_model.leaves[int(x)]['total']) if
+                     tree_model.leaves[int(x)]['total'] > 0 else 0)
+
+    print("tree_model ", worst_leaf)
+    return leaf_to_path(tree_model, X, y, model_type, feature_names, class_names,
+                        worst_leaf)  # leaf_to_path(tree_model, X, y, feature_names, class_names, worst_leaf)
+
+
+if __name__ == "__main__":
+    file_path = os.path.join("..", "data", "diabetes.csv")
+    df = pd.read_csv(file_path)
+    target_column = 'Outcome'
+    X = df.drop(target_column, axis=1)
+    features = list(X.columns)
+    y = df[target_column]
+
+    # Split the dataset into training and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Create and train the TreeModel instance
+    tree_model = TreeModel(
+        model_type='random_forest',
+        model_params={'max_depth': 4},
+        X_train=X_train,
+        y_train=y_train,
+        class_names=['No', 'Yes']
+    )
+    model_type = 'random_forest'
+    class_names = ['No', 'Yes']
+    visualize_decision_tree_with_errors(tree_model, X, y, features, model_type, class_names)
+    dot = visualize_decision_tree_with_errors(tree_model, X, y, features, model_type, class_names)
+    # dot.render('decision_tree_with_errorsN2', view=True, format='png')
+    # display(graph)
+    graph = Source(dot)
+
+    # Render the graph to a file (e.g., PNG)
+    graph.render(filename=f"decision_tree_with_errorsN3", format="png", cleanup=True)
+    
