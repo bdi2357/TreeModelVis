@@ -26,7 +26,7 @@ class TestTreeModel(unittest.TestCase):
 
     def test_random_forest_model_diabetes(self):
         tree_model = TreeModel(
-            model_type='random_forest',
+            model_type='decision_tree',
             model_params={'max_depth': 3},
             X_train=self.X_train_diabetes,
             y_train=self.y_train_diabetes,
