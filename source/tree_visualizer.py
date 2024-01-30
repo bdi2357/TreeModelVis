@@ -128,35 +128,39 @@ def leaf_to_path(tree_model, X, y, model_type, feature_names, class_names, leaf)
     for line in dot_data.split("\n"):
         # Remove 'samples' and 'value' lines from the label attribute
 
+
         line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
         line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
         line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
-
+        line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
         # If the line defines a node, set its fillcolor
         if "->" not in line and "[label=" in line:
             node_id = line.split(" ")[0]
+            print("before\n%s" % line)
+            line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
+            line = line.replace("<br/><br/><br/>", '<br/>')
+            line = line.replace("<br/><br/>", '<br/>')
+            line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
             # errors = leaf_errors.get(node, {'errors': 0, 'total': 0})
-            if not (tree_clf.tree_.children_left[int(node_id)] == tree_clf.tree_.children_right[
-                int(node_id)] == UNDEF):
-                line = line.replace("<br/><br/><br/><br/>class = Yes", "")
-                line = line.replace("<br/><br/><br/><br/>class = No", "")
-
+            if not (tree_clf.tree_.children_left[int(node_id)] + tree_clf.tree_.children_right[int(node_id)] == UNDEF):
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name, "")
+                print("after\n%s" % line)
+            else:
+                print("leaf\n%s" % line)
+                lbl = f"\nError Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
+                # lbl2 = f"\n % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
+                # line = line.replace("label=<No>", "label=<No" + "<br/>" + lbl + "<br/>" + lbl2 + ">")
+                # line = line.replace("label=<Yes>", "label=<Yes" + "<br/>" + lbl + "<br/>" + lbl2 + ">")
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name, "%s" % class_name + "<br/>" + lbl)
             if int(node_id) in np.where(decision_path == 1)[0]:
                 line = line.replace("fillcolor=\"#", "fillcolor=red, original_fillcolor=\"#")
 
                 if node_id == str(leaf):
-                    """
-                    lbl = f"\nError Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
-                    lbl2 = f"\n % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
-                    """
-                    """
-                    lbl = f"\nError Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
-                    lbl2 = f"\n % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
-                    """
                     label = f"Error Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
-                    # print("line")
-                    # print(line)
-                    # label=<<br/><br/><br/>class = Yes>
                     line = line.replace("label=<<br/><br/>", "label=<<br/>%s<br/>" % label)
                     # label += f"\nWorst Leaf: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
 
@@ -171,6 +175,9 @@ def leaf_to_path(tree_model, X, y, model_type, feature_names, class_names, leaf)
                 line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
 
         new_dot_lines.append(line)
+        if 'graph [' in line:
+            # Insert settings right after the graph declaration
+            new_dot_lines.append('  node [fontsize=30, width=3, height=1.5];')
 
     # Join the modified lines back into a single string
     new_dot_data = "\n".join(new_dot_lines)
@@ -194,8 +201,7 @@ def visualize_decision_tree_with_errors(tree_model, X, y, feature_names, model_t
                      tree_model.leaves[int(x)]['total'] > 0 else 0)
 
     print("tree_model ", worst_leaf)
-    return leaf_to_path(tree_model, X, y, model_type, feature_names, class_names,
-                        worst_leaf)  # leaf_to_path(tree_model, X, y, feature_names, class_names, worst_leaf)
+    return leaf_to_path(tree_model, X, y, model_type, feature_names, class_names, worst_leaf)
 
 
 if __name__ == "__main__":
@@ -210,15 +216,17 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Create and train the TreeModel instance
+    model_type = 'decision_tree'
+    class_names = ['No', 'Yes']
     tree_model = TreeModel(
-        model_type='random_forest',
-        model_params={'max_depth': 4},
+        # model_type='random_forest',
+        model_type='decision_tree',
+        model_params={'max_depth': 3},
         X_train=X_train,
         y_train=y_train,
-        class_names=['No', 'Yes']
+        class_names=class_names
     )
-    model_type = 'random_forest'
-    class_names = ['No', 'Yes']
+
     visualize_decision_tree_with_errors(tree_model, X, y, features, model_type, class_names)
     dot = visualize_decision_tree_with_errors(tree_model, X, y, features, model_type, class_names)
     # dot.render('decision_tree_with_errorsN2', view=True, format='png')
@@ -226,5 +234,4 @@ if __name__ == "__main__":
     graph = Source(dot)
 
     # Render the graph to a file (e.g., PNG)
-    graph.render(filename=f"decision_tree_with_errorsN3", format="png", cleanup=True)
-    
+    graph.render(filename=f"decision_tree_with_errorsN1", format="png", cleanup=True)
