@@ -32,7 +32,8 @@ class TestTreeModel(unittest.TestCase):
             y_train=self.y_train_diabetes,
             class_names=self.class_names_diabetes
         )
-        output_path = tree_model.custom_plot_tree(filename="test_TreeModel_diabetes")
+        filename = os.path.join("..", "graphical_output", "test_TreeModel_diabetes")
+        output_path = tree_model.custom_plot_tree(filename=filename)
         print(output_path)
         # Add assertions as needed
 
@@ -44,7 +45,8 @@ class TestTreeModel(unittest.TestCase):
             y_train=self.y_train_AsthmaDiseasePrediction,
             class_names=self.class_names_AsthmaDiseasePrediction
         )
-        output_path = tree_model.custom_plot_tree(filename="test_TreeModel_AsthmaDiseasePrediction")
+        filename = os.path.join("..", "graphical_output", "test_TreeModel_AsthmaDiseasePrediction")
+        output_path = tree_model.custom_plot_tree(filename=filename)
         print(output_path)
         # Add assertions as needed
 

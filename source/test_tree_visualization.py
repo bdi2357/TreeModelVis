@@ -1,46 +1,47 @@
 import unittest
-import os
+from tree_visualizer import visualize_decision_tree_with_errors
 from TreeModel import TreeModel
-from tree_visualizer import draw_path
 from sklearn.model_selection import train_test_split
 import pandas as pd
+import os
+import webbrowser
+from graphviz import Source
 
 
 class TestTreeVisualizer(unittest.TestCase):
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        # Load and prepare dataset
         file_path = os.path.join("..", "data", "diabetes.csv")
         df = pd.read_csv(file_path)
-        target_column = 'Outcome'
-        X = df.drop(target_column, axis=1)
-        self.features = list(X.columns)
-        y = df[target_column]
-
-        # Split the dataset into training and test sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        # Create and train the TreeModel instance
-        self.tree_model = TreeModel(
-            model_type='random_forest',
+        X = df.drop('Outcome', axis=1)
+        y = df['Outcome']
+        cls.X_train, cls.X_test, cls.y_train, cls.y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        cls.tree_model = TreeModel(
+            model_type='decision_tree',
             model_params={'max_depth': 4},
-            X_train=X_train,
-            y_train=y_train,
+            X_train=cls.X_train,
+            y_train=cls.y_train,
             class_names=['No', 'Yes']
         )
-        # self.tree_model.train()  # Train the model (if a train method exists)
 
-        # Select a data point for visualization
-        self.data_point = X_test.iloc[0]
+    def test_visualize_decision_tree_with_errors(self):
+        dot_data = visualize_decision_tree_with_errors(
+            self.tree_model, self.X_train, self.y_train, list(self.X_train.columns),
+            'decision_tree', ['No', 'Yes']
+        )
 
-    def test_draw_path(self):
-        # Call draw_path with the trained model and the data point
-        graph = draw_path(self.tree_model, self.data_point, model_type='random_forest', features=self.features)
-        output_file = os.path.join('..', 'graphical_output', 'test_tree_visualization')
-        graph.render(output_file, view=True, format='png')  # Specify your output path
+        # Render the DOT data to a PNG file and open it
+        output_file = os.path.join("..", "graphical_output", "test_TreeModel_diabetes_error_test_set")
+        graph = Source(dot_data, format="png")
+        graph.render(output_file, cleanup=True)
 
-        # Assertions or additional checks can be added here
-        self.assertTrue(os.path.exists(output_file + '.png'), "Graph image file was not created.")
+        # Automatically open the generated image for viewing
+        image_path = output_file + ".png"
+        webbrowser.open('file://' + os.path.realpath(image_path))
 
+        # Assert that the image file is created
+        self.assertTrue(os.path.exists(image_path), "Tree visualization image file should exist.")
 
 if __name__ == '__main__':
     unittest.main()
