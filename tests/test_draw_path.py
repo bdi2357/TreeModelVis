@@ -1,9 +1,13 @@
 import unittest
-import os
-from TreeModel import TreeModel
-from tree_visualizer import draw_path
+import sys
 from sklearn.model_selection import train_test_split
 import pandas as pd
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 'source')))
+
+from TreeModel import TreeModel
+from tree_visualizer import draw_path
 
 
 class TestTreeVisualizer(unittest.TestCase):

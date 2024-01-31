@@ -1,8 +1,13 @@
 import unittest
-from TreeModel import TreeModel
+import sys
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 'source')))
+
+from TreeModel import TreeModel
+
 
 class TestTreeModel(unittest.TestCase):
     def setUp(self):
@@ -49,6 +54,7 @@ class TestTreeModel(unittest.TestCase):
         output_path = tree_model.custom_plot_tree(filename=filename)
         print(output_path)
         # Add assertions as needed
+
 
 if __name__ == '__main__':
     unittest.main()

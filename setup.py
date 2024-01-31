@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name='TreeModelVis',
     version='0.1.0',
-    author='Your Name',
-    author_email='your.email@example.com',
+    author='Itay Ben Dan',
+    author_email='itaybd@gmail.com',
     description='A toolkit for visualizing and customizing tree-based models.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

@@ -1,4 +1,10 @@
+import sys
 import unittest
+import os
+
+# Add the source directory to sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 'source')))
+
 from tree_visualizer import visualize_decision_tree_with_errors
 from TreeModel import TreeModel
 from sklearn.model_selection import train_test_split
@@ -42,6 +48,7 @@ class TestTreeVisualizer(unittest.TestCase):
 
         # Assert that the image file is created
         self.assertTrue(os.path.exists(image_path), "Tree visualization image file should exist.")
+
 
 if __name__ == '__main__':
     unittest.main()
