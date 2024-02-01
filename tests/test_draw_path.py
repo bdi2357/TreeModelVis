@@ -29,7 +29,7 @@ class TestTreeVisualizer(unittest.TestCase):
         # Create and train the TreeModel instance
         self.tree_model = TreeModel(
             model_type='random_forest',
-            model_params={'max_depth': 4},
+            model_params={'max_depth': 3},
             X_train=X_train,
             y_train=y_train,
             class_names=['No', 'Yes']

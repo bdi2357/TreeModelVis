@@ -52,7 +52,7 @@ class TestTreeModel(unittest.TestCase):
     def test_random_forest_model_AsthmaDiseasePrediction(self):
         tree_model = TreeModel(
             model_type='random_forest',
-            model_params={'max_depth': 4},
+            model_params={'max_depth': 3},
             X_train=self.X_train_AsthmaDiseasePrediction,
             y_train=self.y_train_AsthmaDiseasePrediction,
             class_names=self.class_names_AsthmaDiseasePrediction

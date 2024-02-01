@@ -29,7 +29,7 @@ class TestTreeVisualizer(unittest.TestCase):
         cls.X_train, cls.X_test, cls.y_train, cls.y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         cls.tree_model = TreeModel(
             model_type='decision_tree',
-            model_params={'max_depth': 4},
+            model_params={'max_depth': 3},
             X_train=cls.X_train,
             y_train=cls.y_train,
             class_names=['No', 'Yes']
