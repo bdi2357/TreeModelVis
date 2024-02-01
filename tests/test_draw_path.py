@@ -13,7 +13,10 @@ from tree_visualizer import draw_path
 class TestTreeVisualizer(unittest.TestCase):
 
     def setUp(self):
-        file_path = os.path.join("..", "data", "diabetes.csv")
+        if os.path.isdir(os.path.join("..", "data")):
+            file_path = os.path.join("..", "data", "diabetes.csv")
+        elif os.path.isdir("data"):
+            file_path = os.path.join("data", "diabetes.csv")
         df = pd.read_csv(file_path)
         target_column = 'Outcome'
         X = df.drop(target_column, axis=1)

@@ -12,8 +12,11 @@ from TreeModel import TreeModel
 class TestTreeModel(unittest.TestCase):
     def setUp(self):
         # Load the first dataset (diabetes)
-        file_path_diabetes = os.path.join("..", "data", "diabetes.csv")
-        df_diabetes = pd.read_csv(file_path_diabetes)
+        if os.path.isdir(os.path.join("..", "data")):
+            file_path = os.path.join("..", "data", "diabetes.csv")
+        elif os.path.isdir("data"):
+            file_path = os.path.join("data", "diabetes.csv")
+        df_diabetes = pd.read_csv(file_path)
         X_diabetes = df_diabetes.drop('Outcome', axis=1)
         y_diabetes = df_diabetes['Outcome']
         self.X_train_diabetes, self.X_test_diabetes, self.y_train_diabetes, self.y_test_diabetes = train_test_split(
@@ -21,7 +24,11 @@ class TestTreeModel(unittest.TestCase):
         self.class_names_diabetes = ['No', 'Yes']
 
         # Load the second dataset (AsthmaDiseasePrediction)
-        file_path_AsthmaDiseasePrediction = os.path.join("..", "data", "AsthmaDiseasePrediction.csv")
+        # file_path_AsthmaDiseasePrediction = os.path.join("..", "data", "AsthmaDiseasePrediction.csv")
+        if os.path.isdir(os.path.join("..", "data")):
+            file_path_AsthmaDiseasePrediction = os.path.join("..", "data", "AsthmaDiseasePrediction.csv")
+        elif os.path.isdir("data"):
+            file_path_AsthmaDiseasePrediction = os.path.join("data", "AsthmaDiseasePrediction.csv")
         df_AsthmaDiseasePrediction = pd.read_csv(file_path_AsthmaDiseasePrediction)
         X_AsthmaDiseasePrediction = df_AsthmaDiseasePrediction.drop('Difficulty-in-Breathing', axis=1)
         y_AsthmaDiseasePrediction = df_AsthmaDiseasePrediction['Difficulty-in-Breathing']

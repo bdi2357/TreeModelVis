@@ -18,7 +18,11 @@ class TestTreeVisualizer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Load and prepare dataset
-        file_path = os.path.join("..", "data", "diabetes.csv")
+        # file_path = os.path.join("..", "data", "diabetes.csv")
+        if os.path.isdir(os.path.join("..", "data")):
+            file_path = os.path.join("..", "data", "diabetes.csv")
+        elif os.path.isdir("data"):
+            file_path = os.path.join("data", "diabetes.csv")
         df = pd.read_csv(file_path)
         X = df.drop('Outcome', axis=1)
         y = df['Outcome']
