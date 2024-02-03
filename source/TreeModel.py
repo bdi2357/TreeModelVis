@@ -102,7 +102,7 @@ class TreeModel:
     def compute_leaves_errors_extd(self, X, y):
         clf = self.model if isinstance(self.model, DecisionTreeClassifier) else self.model.estimators_[0]
         tree = clf.tree_
-        leaf_errors = {}
+        leaf_errors = {x: {'errors': 0, 'total': 0} for x in self.leaves.keys()}
         TREE_LEAF = -1
         for xi, yi in zip(np.array(X), np.array(y)):
             node = 0

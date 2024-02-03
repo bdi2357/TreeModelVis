@@ -205,8 +205,6 @@ def visualize_decision_tree_with_errors(tree_model, X, y, feature_names, model_t
     return leaf_to_path(tree_model, X, y, feature_names, class_names, worst_leaf)
 
 
-from sklearn.tree import export_graphviz
-import re
 
 
 def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_names, class_names, max_error_rate,
@@ -220,6 +218,9 @@ def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_nam
         tree_clf = clf  # Use the classifier directly if it's a single decision tree
 
     leaf_errors = tree_model.compute_leaves_errors_extd(X, y)
+    print("comapre")
+    print(leaf_errors.keys())
+    print(tree_model.leaves.keys())
 
     def tmp_f(leaf_errors, leaf):
         if not relative:
@@ -255,7 +256,18 @@ def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_nam
             else:
                 print("leaf\n%s" % line)
                 lbl = f"\nTrain Error Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
-                lbl2 = f"\nTest Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+                print(node_id)
+                print("#" * 50)
+                print(leaf_errors.keys())
+                print(tree_model.leaves.keys())
+                print(node_id in leaf_errors.keys())
+                print(int(node_id) in leaf_errors.keys())
+                print(leaf_errors[int(node_id)]['errors'])
+                print(leaf_errors[int(node_id)]['total'])
+                if leaf_errors[int(node_id)]['total'] > 0:
+                    lbl2 = f"\nTest Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+                else:
+                    lbl2 = f"\nTest Error Rate: {0:.2f}"
 
                 for class_name in class_names:
                     line = line.replace("<br/>class = %s" % class_name,
@@ -285,6 +297,84 @@ def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_nam
     # Generate paths to individual leaves with high error rates
     paths_to_high_error_leaves = [leaf_to_path(tree_model, X, y, feature_names, class_names, leaf) for leaf in
                                   above_error_rate]
+
+    return new_dot_data, paths_to_high_error_leaves
+
+
+def visualize_decision_tree_with_sample_deviation(tree_model, X, y, feature_names, class_names, max_error_rate):
+    # Determine if model is a single decision tree or an ensemble of trees
+    UNDEF = -2
+    total_oos_samples = X.shape[0]
+    clf = tree_model.model
+    if tree_model.model_type != 'decision_tree':
+        tree_clf = clf.estimators_[0]  # Use the first tree in the ensemble
+    else:
+        tree_clf = clf  # Use the classifier directly if it's a single decision tree
+
+    leaf_errors = tree_model.compute_leaves_errors_extd(X, y)
+
+    def tmp_f(leaf_errors, leaf):
+        x1 = leaf_errors[leaf]['total'] / float(total_oos_samples)
+        y1 = tree_model.leaves[int(leaf)]['total'] / tree_model.total_num_of_samples
+        return abs(x1 - y1) / y1
+
+    # Find leaves with error rate above max_error_rate
+    above_error_rate = [leaf for leaf in leaf_errors if tmp_f(leaf_errors, leaf) > max_error_rate]
+
+    # Generate DOT-format graph description
+    dot_data = export_graphviz(tree_clf, out_file=None, filled=True, rounded=True,
+                               feature_names=feature_names, class_names=class_names,
+                               special_characters=True)
+
+    # Initialize a list to hold the new lines of the DOT string
+    new_dot_lines = []
+
+    # Iterate through each line of the original DOT string
+    for line in dot_data.split("\n"):
+        if "->" not in line and "[label=" in line:
+            line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
+            line = line.replace("<br/><br/><br/>", '<br/>')
+            line = line.replace("<br/><br/>", '<br/>')
+            line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
+            node_id = line.split(" ")[0]
+            if not (tree_clf.tree_.children_left[int(node_id)] + tree_clf.tree_.children_right[int(node_id)] == UNDEF):
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name, "")
+            else:
+                print("leaf\n%s" % line)
+                lbl = f"Train % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
+                lbl2 = f"Test % of the total:{100 * leaf_errors[int(node_id)]['total'] / total_oos_samples :.2f}%"
+
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name,
+                                        "%s" % class_name + "<br/>" + lbl + "<br/>" + lbl2)
+                    line = line.replace("<br/>%s" % class_name, "%s" % class_name)
+            if int(node_id) in above_error_rate:
+                error_rate = tmp_f(leaf_errors, int(node_id))
+                # label = f"Error Rate: {error_rate:.2f}"
+                line = line.replace("fillcolor=\"#", "fillcolor=purple, original_fillcolor=\"#")
+                for class_name in class_names:
+                    line = line.replace("<br/>%s" % class_name, "%s" % class_name)
+                print("line_err\n%s" % line)
+                # line = line.replace("label=<<br/><br/>", f"label=<<br/>{label}<br/>")
+            else:
+
+                if tree_clf.tree_.feature[int(node_id)] == UNDEF:
+                    error_rate = tmp_f(leaf_errors, int(node_id))
+                    label = f"Error Rate: {error_rate:.2f}"
+                    line = line.replace("label=<<br/><br/>", "label=<<br/>%s<br/>" % label)
+                line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
+
+        new_dot_lines.append(line)
+
+    # Join the modified lines back into a single string
+    new_dot_data = "\n".join(new_dot_lines)
+
+    # Generate paths to individual leaves with high error rates
+    paths_to_high_error_leaves = [leaf_to_path(tree_model, X, y, feature_names, class_names, leaf) for leaf in
+                                  above_error_rate if leaf_errors[leaf]['total'] > 0]
 
     return new_dot_data, paths_to_high_error_leaves
 
@@ -319,11 +409,11 @@ if __name__ == "__main__":
     graph = Source(dot)
 
     # Render the graph to a file (e.g., PNG)
-    graph.render(filename=f"decision_tree_with_errorsN1", format="png", cleanup=True)
+    graph.render(filename=f"decision_tree_worst_path", format="png", cleanup=True)
 
     dot, paths = visualize_decision_tree_with_nodes_large_error(tree_model, X_test, y_test,
                                                                 feature_names=X_test.columns.tolist(),
-                                                                class_names=['No', 'Yes'], max_error_rate=0.5)
+                                                                class_names=['No', 'Yes'], max_error_rate=0.4)
     # dot.render('decision_tree_with_errorsN2', view=True, format='png')
     # display(graph)
     graph = Source(dot)
@@ -344,6 +434,20 @@ if __name__ == "__main__":
 
     # Render the graph to a file (e.g., PNG)
     graph.render(filename=f"decision_tree_with_large_relative_error", format="png", cleanup=True)
+
+    # Display the graph in Jupyter Notebook
+    display(graph)
+
+    visualize_decision_tree_with_sample_deviation
+    dot, paths = visualize_decision_tree_with_sample_deviation(tree_model, X_test, y_test,
+                                                               feature_names=X_test.columns.tolist(),
+                                                               class_names=['No', 'Yes'], max_error_rate=0.5)
+    # dot.render('decision_tree_with_errorsN2', view=True, format='png')
+    # display(graph)
+    graph = Source(dot)
+
+    # Render the graph to a file (e.g., PNG)
+    graph.render(filename=f"decision_tree_with_large_deviation", format="png", cleanup=True)
 
     # Display the graph in Jupyter Notebook
     display(graph)
