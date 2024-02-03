@@ -7,6 +7,7 @@ from TreeModel import TreeModel
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from graphviz import Source
+from IPython.display import display
 
 
 # from IPython.display import display, Image
@@ -104,13 +105,13 @@ def draw_path(tree_model, data_point, model_type, features):
     return graph
 
 
-def leaf_to_path(tree_model, X, y, model_type, feature_names, class_names, leaf):
+def leaf_to_path(tree_model, X, y, feature_names, class_names, leaf):
     # Generate DOT-format graph description
     # leaf_errors = compute_leaf_errors(clf, X, y)
     UNDEF = -2
     TREE_LEAF = -1
     clf = tree_model.model
-    if model_type != 'decision_tree':
+    if tree_model.model_type != 'decision_tree':
         tree_clf = clf.estimators_[0]  # Assuming use of the first tree in the forest
     else:
         tree_clf = clf  # For other model types, use the classifier directly
@@ -201,7 +202,91 @@ def visualize_decision_tree_with_errors(tree_model, X, y, feature_names, model_t
                      tree_model.leaves[int(x)]['total'] > 0 else 0)
 
     print("tree_model ", worst_leaf)
-    return leaf_to_path(tree_model, X, y, model_type, feature_names, class_names, worst_leaf)
+    return leaf_to_path(tree_model, X, y, feature_names, class_names, worst_leaf)
+
+
+from sklearn.tree import export_graphviz
+import re
+
+
+def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_names, class_names, max_error_rate,
+                                                   relative=False):
+    # Determine if model is a single decision tree or an ensemble of trees
+    UNDEF = -2
+    clf = tree_model.model
+    if tree_model.model_type != 'decision_tree':
+        tree_clf = clf.estimators_[0]  # Use the first tree in the ensemble
+    else:
+        tree_clf = clf  # Use the classifier directly if it's a single decision tree
+
+    leaf_errors = tree_model.compute_leaves_errors_extd(X, y)
+
+    def tmp_f(leaf_errors, leaf):
+        if not relative:
+            return (leaf_errors[leaf]['errors'] / leaf_errors[leaf]['total']) if leaf_errors[leaf]['total'] > 0 else 0
+        else:
+            x1 = (leaf_errors[leaf]['errors'] / leaf_errors[leaf]['total']) if leaf_errors[leaf]['total'] > 0 else 0
+            return x1 - tree_model.leaves[int(leaf)]['errors'] / tree_model.leaves[int(leaf)]['total']
+
+    # Find leaves with error rate above max_error_rate
+    above_error_rate = [leaf for leaf in leaf_errors if tmp_f(leaf_errors, leaf) > max_error_rate]
+
+    # Generate DOT-format graph description
+    dot_data = export_graphviz(tree_clf, out_file=None, filled=True, rounded=True,
+                               feature_names=feature_names, class_names=class_names,
+                               special_characters=True)
+
+    # Initialize a list to hold the new lines of the DOT string
+    new_dot_lines = []
+
+    # Iterate through each line of the original DOT string
+    for line in dot_data.split("\n"):
+        if "->" not in line and "[label=" in line:
+            line = re.sub(r'samples = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'value = \[?[0-9, ]+\]?', '', line)
+            line = re.sub(r'gini = [0-9]+\.[0-9]+', '', line)
+            line = line.replace("<br/><br/><br/>", '<br/>')
+            line = line.replace("<br/><br/>", '<br/>')
+            line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
+            node_id = line.split(" ")[0]
+            if not (tree_clf.tree_.children_left[int(node_id)] + tree_clf.tree_.children_right[int(node_id)] == UNDEF):
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name, "")
+            else:
+                print("leaf\n%s" % line)
+                lbl = f"\nTrain Error Rate: {tree_model.leaves[int(node_id)]['errors'] / tree_model.leaves[int(node_id)]['total']:.2f}"
+                lbl2 = f"\nTest Error Rate: {leaf_errors[int(node_id)]['errors'] / leaf_errors[int(node_id)]['total']:.2f}"
+
+                for class_name in class_names:
+                    line = line.replace("<br/>class = %s" % class_name,
+                                        "%s" % class_name + "<br/>" + lbl + "<br/>" + lbl2)
+                    line = line.replace("<br/>%s" % class_name, "%s" % class_name)
+            if int(node_id) in above_error_rate:
+                error_rate = tmp_f(leaf_errors, int(node_id))
+                # label = f"Error Rate: {error_rate:.2f}"
+                line = line.replace("fillcolor=\"#", "fillcolor=red, original_fillcolor=\"#")
+                for class_name in class_names:
+                    line = line.replace("<br/>%s" % class_name, "%s" % class_name)
+                print("line_err\n%s" % line)
+                # line = line.replace("label=<<br/><br/>", f"label=<<br/>{label}<br/>")
+            else:
+
+                if tree_clf.tree_.feature[int(node_id)] == UNDEF:
+                    error_rate = tmp_f(leaf_errors, int(node_id))
+                    label = f"Error Rate: {error_rate:.2f}"
+                    line = line.replace("label=<<br/><br/>", "label=<<br/>%s<br/>" % label)
+                line = line.replace("fillcolor=\"#", "fillcolor=white, original_fillcolor=\"#")
+
+        new_dot_lines.append(line)
+
+    # Join the modified lines back into a single string
+    new_dot_data = "\n".join(new_dot_lines)
+
+    # Generate paths to individual leaves with high error rates
+    paths_to_high_error_leaves = [leaf_to_path(tree_model, X, y, feature_names, class_names, leaf) for leaf in
+                                  above_error_rate]
+
+    return new_dot_data, paths_to_high_error_leaves
 
 
 if __name__ == "__main__":
@@ -220,7 +305,7 @@ if __name__ == "__main__":
     class_names = ['No', 'Yes']
     tree_model = TreeModel(
         # model_type='random_forest',
-        model_type='decision_tree',
+        model_type='random_forest',
         model_params={'max_depth': 3},
         X_train=X_train,
         y_train=y_train,
@@ -235,3 +320,30 @@ if __name__ == "__main__":
 
     # Render the graph to a file (e.g., PNG)
     graph.render(filename=f"decision_tree_with_errorsN1", format="png", cleanup=True)
+
+    dot, paths = visualize_decision_tree_with_nodes_large_error(tree_model, X_test, y_test,
+                                                                feature_names=X_test.columns.tolist(),
+                                                                class_names=['No', 'Yes'], max_error_rate=0.5)
+    # dot.render('decision_tree_with_errorsN2', view=True, format='png')
+    # display(graph)
+    graph = Source(dot)
+
+    # Render the graph to a file (e.g., PNG)
+    graph.render(filename=f"decision_tree_with_large_error", format="png", cleanup=True)
+
+    # Display the graph in Jupyter Notebook
+    display(graph)
+
+    dot, paths = visualize_decision_tree_with_nodes_large_error(tree_model, X_test, y_test,
+                                                                feature_names=X_test.columns.tolist(),
+                                                                class_names=['No', 'Yes'], max_error_rate=0.2,
+                                                                relative=True)
+    # dot.render('decision_tree_with_errorsN2', view=True, format='png')
+    # display(graph)
+    graph = Source(dot)
+
+    # Render the graph to a file (e.g., PNG)
+    graph.render(filename=f"decision_tree_with_large_relative_error", format="png", cleanup=True)
+
+    # Display the graph in Jupyter Notebook
+    display(graph)

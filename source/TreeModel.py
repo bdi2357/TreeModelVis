@@ -92,12 +92,37 @@ class TreeModel:
                 leaf_errors[node] = {'errors': 0, 'total': 0}
             leaf_errors[node]['total'] += 1
             prediction = np.argmax(tree.value[node])
-            #print("compare")
-            #print(yi,self.class_names[prediction] )
-            #if self.class_names[prediction] != yi:
+            # print("compare")
+            # print(yi,self.class_names[prediction] )
+            # if self.class_names[prediction] != yi:
             if prediction != yi:
                 leaf_errors[node]['errors'] += 1
         return leaf_errors
+
+    def compute_leaves_errors_extd(self, X, y):
+        clf = self.model if isinstance(self.model, DecisionTreeClassifier) else self.model.estimators_[0]
+        tree = clf.tree_
+        leaf_errors = {}
+        TREE_LEAF = -1
+        for xi, yi in zip(np.array(X), np.array(y)):
+            node = 0
+            while tree.children_left[node] != TREE_LEAF:
+
+                if float(xi[tree.feature[node]]) <= float(tree.threshold[node]):
+                    node = tree.children_left[node]
+                else:
+                    node = tree.children_right[node]
+            if node not in leaf_errors:
+                leaf_errors[node] = {'errors': 0, 'total': 0}
+            leaf_errors[node]['total'] += 1
+            prediction = np.argmax(tree.value[node])
+            # print("compare")
+            # print(yi,self.class_names[prediction] )
+            # if self.class_names[prediction] != yi:
+            if prediction != yi:
+                leaf_errors[node]['errors'] += 1
+        return leaf_errors
+
     def custom_plot_tree(self, filename='clean_tree'):
         """
         Plot the trained tree model with custom formatting.
