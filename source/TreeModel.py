@@ -9,7 +9,29 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 class TreeModel:
-    def __init__(self, model_type, model_params, X_train, y_train, class_names, output_dir=os.path.join('..','graphical_output')):
+    """
+    Overview
+    TreeModel.py defines a class TreeModel for creating, training, and visualizing tree-based machine learning models.
+    It supports various tree-based algorithms such as Decision Tree, Random Forest, Gradient Boosting, and more.
+    The module leverages scikit-learn for model training and graphviz for visualization.
+    It provides functionalities to compute errors at leaf nodes and visualize the model highlighting nodes based on certain criteria.
+
+    Classes and Methods
+    Class: TreeModel
+    Purpose: Encapsulates a tree-based model, providing methods to train the model, compute leaf node errors, and generate custom visualizations.
+    Key Methods:
+    __init__: Initializes the TreeModel with model type, parameters, training data, and configuration for visualization output.
+    _create_model: Based on the specified model_type, it creates and returns an instance of the corresponding scikit-learn model.
+    compute_leaves_errors: Calculates errors for each leaf node based on the training data.
+    compute_leaves_errors_extd: Similar to compute_leaves_errors but allows computation on any given dataset, not limited to training data.
+    custom_plot_tree: Generates and saves a visualization of the tree model, with options to customize the appearance of nodes.
+    _clean_dot_data: Processes raw dot data from graphviz to modify node appearances based on custom logic (e.g., error rates, total samples in leaf nodes).
+    Usage
+
+    """
+
+    def __init__(self, model_type, model_params, X_train, y_train, class_names,
+                 output_dir=os.path.join('..', 'graphical_output')):
         """
         Initialize the TreeModel.
 

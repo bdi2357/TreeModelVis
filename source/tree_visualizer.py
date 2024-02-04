@@ -12,6 +12,18 @@ from IPython.display import display
 
 # from IPython.display import display, Image
 def draw_path(tree_model, data_point, model_type, features):
+    """
+    Description: Visualizes the decision path for a specific data point within a tree-based model. It highlights the path taken by the data point through the model's decision nodes.
+    Key Features:
+    Supports various tree-based models including decision trees and random forest classifiers.
+    Cleans and modifies the DOT graph for clearer visualization.
+    Highlights the decision path in green.
+    :param tree_model:
+    :param data_point:
+    :param model_type:
+    :param features:
+    :return:
+    """
     # Access the classifier and feature/class names from TreeModel
     UNDEF = -2
     clf = tree_model.model
@@ -106,6 +118,21 @@ def draw_path(tree_model, data_point, model_type, features):
 
 
 def leaf_to_path(tree_model, X, y, feature_names, class_names, leaf):
+    """
+    Description: Visualizes the decision path for a specific data point within a tree-based model.
+    It highlights the path taken by the data point through the model's decision nodes.
+    Key Features:
+    Supports various tree-based models including decision trees and random forest classifiers.
+    Cleans and modifies the DOT graph for clearer visualization.
+    Highlights the decision path in green.
+    :param tree_model:
+    :param X:
+    :param y:
+    :param feature_names:
+    :param class_names:
+    :param leaf:
+    :return:
+    """
     # Generate DOT-format graph description
     # leaf_errors = compute_leaf_errors(clf, X, y)
     UNDEF = -2
@@ -187,6 +214,20 @@ def leaf_to_path(tree_model, X, y, feature_names, class_names, leaf):
 
 
 def visualize_decision_tree_with_errors(tree_model, X, y, feature_names, model_type, class_names):
+    """
+    Description: Identifies and visualizes the path leading to the leaf node with the highest error rate.
+    This function is intended to help diagnose areas where the model may be underperforming.
+    Key Features:
+    Automatically identifies the worst-performing leaf node based on error rate.
+    Utilizes leaf_to_path to visualize the path to this node.
+    :param tree_model:
+    :param X:
+    :param y:
+    :param feature_names:
+    :param model_type:
+    :param class_names:
+    :return:
+    """
     clf = tree_model.model
     # features = tree_model.feature_names
     class_names = tree_model.class_names
@@ -205,10 +246,23 @@ def visualize_decision_tree_with_errors(tree_model, X, y, feature_names, model_t
     return leaf_to_path(tree_model, X, y, feature_names, class_names, worst_leaf)
 
 
-
-
 def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_names, class_names, max_error_rate,
                                                    relative=False):
+    """
+    Description: Extends error visualization by identifying multiple nodes with error rates exceeding a specified threshold.
+    It generates visualizations for these nodes to analyze high-error regions within the model.
+    Key Features:
+    Can work on a relative scale, comparing test errors against training errors to find significant deviations.
+    Generates separate path visualizations for each node exceeding the error threshold.
+    :param tree_model:
+    :param X:
+    :param y:
+    :param feature_names:
+    :param class_names:
+    :param max_error_rate:
+    :param relative:
+    :return:
+    """
     # Determine if model is a single decision tree or an ensemble of trees
     UNDEF = -2
     clf = tree_model.model
@@ -302,6 +356,19 @@ def visualize_decision_tree_with_nodes_large_error(tree_model, X, y, feature_nam
 
 
 def visualize_decision_tree_with_sample_deviation(tree_model, X, y, feature_names, class_names, max_error_rate):
+    """
+    Description: Focuses on identifying and visualizing nodes where the proportion of samples significantly deviates from the training set, potentially indicating areas of the model sensitive to sample distribution changes.
+    Key Features:
+    Identifies nodes with significant deviations in sample proportions between training and test (or other) datasets.
+    Visualizes these nodes to highlight potential overfitting or underfitting.
+    :param tree_model:
+    :param X:
+    :param y:
+    :param feature_names:
+    :param class_names:
+    :param max_error_rate:
+    :return:
+    """
     # Determine if model is a single decision tree or an ensemble of trees
     UNDEF = -2
     total_oos_samples = X.shape[0]
@@ -346,6 +413,7 @@ def visualize_decision_tree_with_sample_deviation(tree_model, X, y, feature_name
                 print("leaf\n%s" % line)
                 lbl = f"Train % of the total:{100 * tree_model.leaves[int(node_id)]['total'] / tree_model.total_num_of_samples:.2f}%"
                 lbl2 = f"Test % of the total:{100 * leaf_errors[int(node_id)]['total'] / total_oos_samples :.2f}%"
+
 
                 for class_name in class_names:
                     line = line.replace("<br/>class = %s" % class_name,
@@ -438,7 +506,7 @@ if __name__ == "__main__":
     # Display the graph in Jupyter Notebook
     display(graph)
 
-    visualize_decision_tree_with_sample_deviation
+    # visualize_decision_tree_with_sample_deviation
     dot, paths = visualize_decision_tree_with_sample_deviation(tree_model, X_test, y_test,
                                                                feature_names=X_test.columns.tolist(),
                                                                class_names=['No', 'Yes'], max_error_rate=0.5)
