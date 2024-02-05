@@ -47,5 +47,14 @@ cd TreeModelVis
 pip install -r requirements.txt
 ```
 
+## Example Usage
+
+For a hands-on introduction to TreeModelVis, including how to visualize decision trees and analyze model performance,
+check out our [Example Notebook](example/Example_TreeModelVis.ipynb).
+
+This notebook guides you through the steps of using TreeModelVis with practical examples, showcasing how to leverage the
+toolkit for enhanced model visualization and interpretation. Whether you're a beginner or an experienced practitioner,
+the notebook provides valuable insights into making the most out of TreeModelVis capabilities.
+
 
 
