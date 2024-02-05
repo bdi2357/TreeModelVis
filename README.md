@@ -9,14 +9,27 @@ for model analysis and presentation.
 
 - **Versatile Visualization**: Create detailed, customizable graphics to visualize decision trees and tree ensembles.
   ![Versatile Visualization Example](graphical_output/test_TreeModel_AsthmaDiseasePrediction.png)
+
 - **Out-of-Sample Data Analysis**: Evaluate out-of-sample data and compare its error alignment with the training error,
   offering insights into the model's generalization.
-  ![Out-of-Sample Data Analysis](graphical_output/test_TreeModel_diabetes_error_test_set.png)
+  ![Out-of-Sample Data Analysis](graphical_output/decision_tree_with_large_error.png)
+
 - **Data Distribution Insights**: Gain an understanding of data distribution and model decision patterns to improve
   interpretability.
-  ![Data Distribution Insights](graphical_output/test_TreeModel_diabetes.png)
-- **scikit-learn Integration**: Work smoothly with existing scikit-learn workflows for a streamlined experience.
-- **User-Friendly**: Accessible to users of all levels, from beginners to experienced practitioners.
+  ![Data Distribution Insights](graphical_output/decision_tree_with_large_deviation.png)
+
+- **Individual Decision Logic Analysis**: Utilize `draw_path` to visualize and understand the decision-making process
+  for specific instances, providing deep insights into how models make predictions.
+  ![Individual Decision Logic Example](graphical_output/test_tree_diabetes_draw_path.png)
+
+- **Worst Performing Path Identification**: Identify and analyze the paths within the model that result in the highest
+  error rates, helping to pinpoint areas for improvement.
+  ![Worst Performing Path Example](graphical_output/decision_tree_worst_path.png)
+
+- **scikit-learn Integration**: Seamlessly integrates with existing scikit-learn workflows for a smooth user experience.
+
+- **User-Friendly**: Designed with simplicity in mind, enabling both beginners and experienced practitioners to leverage
+  its capabilities efficiently.
 
 ## Quickstart
 
