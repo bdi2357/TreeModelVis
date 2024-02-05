@@ -39,12 +39,36 @@ To get started with TreeModelVis, install the package using pip:
 pip install TreeModelVis
 ```
 
-Or clone the repository and install the requirements:
+Or clone the repository:
 
 ```
 git clone https://github.com/yourusername/TreeModelVis.git
 cd TreeModelVis
-pip install -r requirements.txt
+import sys
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join("TreeModelVis", 'source')))
+
+from TreeModel import TreeModel
+file_path = 'TreeModelVis/data/diabetes.csv'
+df_diabetes = pd.read_csv(file_path)
+X_diabetes = df_diabetes.drop('Outcome', axis=1)
+y_diabetes = df_diabetes['Outcome']
+X_train_diabetes, X_test_diabetes, y_train_diabetes, y_test_diabetes = train_test_split(
+            X_diabetes, y_diabetes, test_size=0.2, random_state=42)
+class_names_diabetes = ['No', 'Yes']
+tree_model = TreeModel(
+            model_type='decision_tree',
+            model_params={'max_depth': 3},
+            X_train=X_train_diabetes,
+            y_train=y_train_diabetes,
+            class_names=class_names_diabetes
+        )
+filename = os.path.join("graphical_output", "test_TreeModel_diabetes")
+output_path = tree_model.custom_plot_tree(filename=filename)
+print(output_path)
 ```
 
 ## Example Usage
