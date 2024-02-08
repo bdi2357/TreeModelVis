@@ -113,6 +113,8 @@ def clean_label_attributes(line, class_names):
     line = re.sub(r'\[?[0-9,\. ]+\]', '', line)
     for class_name in class_names:
         line = line.replace(f"<br/>class = {class_name}", f"{class_name}")
+        line = line.replace(f"<br/>{class_name}", f"{class_name}")
+        line = line.replace(f"<br/>{class_name}", f"{class_name}")
     return line
 
 
@@ -146,7 +148,7 @@ if __name__ == "__main__":
     # Create and train the TreeModel instance
     tree_model = TreeModel(
         model_type='random_forest',
-        model_params={'max_depth': 4},
+        model_params={'max_depth': 3},
         X_train=X_train,
         y_train=y_train,
         class_names=['No', 'Yes']

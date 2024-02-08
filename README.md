@@ -20,7 +20,7 @@ for model analysis and presentation.
 
 - **Individual Decision Logic Analysis**: Utilize `draw_path` to visualize and understand the decision-making process
   for specific instances, providing deep insights into how models make predictions.
-  ![Individual Decision Logic Example](graphical_output/test_tree_diabetes_draw_path.png)
+  ![Individual Decision Logic Example](graphical_output/test_draw_path1.png)
 
 - **Worst Performing Path Identification**: Identify and analyze the paths within the model that result in the highest
   error rates, helping to pinpoint areas for improvement.

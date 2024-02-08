@@ -78,6 +78,7 @@ def draw_path(tree_model, data_point, model_type, features):
                 for class_name in class_names:
                     line = line.replace("<br/>class = %s" % class_name,
                                         "%s" % class_name + "<br/>" + lbl + "<br/>" + lbl2)
+                    line = line.replace("<br/>%s" % class_name, "%s" % class_name)
                 # line = line.replace("<br/>class = No", "class = No"+"<br/>" + lbl + "<br/>" + lbl2)
             print("after\n%s" % line)
 
@@ -478,6 +479,11 @@ if __name__ == "__main__":
 
     # Render the graph to a file (e.g., PNG)
     graph.render(filename=f"decision_tree_worst_path", format="png", cleanup=True)
+
+    data_point = X_test.iloc[0]
+    graph = draw_path(tree_model, data_point, model_type='random_forest', features=features)
+    output_file = os.path.join('..', 'graphical_output', 'test_draw_path1')
+    graph.render(output_file, view=True, format='png')  # Specify your output path
 
     dot, paths = visualize_decision_tree_with_nodes_large_error(tree_model, X_test, y_test,
                                                                 feature_names=X_test.columns.tolist(),
